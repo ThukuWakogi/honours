@@ -68,7 +68,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             date_added={
                 'required': True,
                 'allow_null': False,
-                'write_only': True,
+                'read_only': True,
             }
         )
 
