@@ -62,8 +62,7 @@ class ProjectSerializer(serializers.ModelSerializer):
                 'allow_null': False
             },
             user={
-                'required': True,
-                'allow_null': False
+                'required': False,
             },
             date_added={
                 'required': True,
