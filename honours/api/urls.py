@@ -11,7 +11,8 @@ router.register(r'projects', views.ProjectViewSet)
 router.register(r'projectRatings', views.ProjectRatingViewSet)
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('auth/', views.ObtainAuthTokenAndUserDetails.as_view())
 ]
 
 if settings.DEBUG:
