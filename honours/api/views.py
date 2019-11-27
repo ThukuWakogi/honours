@@ -2,6 +2,8 @@ from rest_framework import viewsets
 from django.contrib.auth.models import User
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.generics import RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer, UserProfileSerializer, ProjectSerializer, ProjectRatingSerializer
 from .models import UserProfile, Project, ProjectRating
 from rest_framework.authtoken.models import Token
@@ -33,13 +35,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class ObtainAuthTokenAndUserDetails(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        print('in obtaining')
         response = super(ObtainAuthTokenAndUserDetails, self).post(request, *args, **kwargs)
-        print('in obtaining 2')
         token = Token.objects.get(key=response.data['token'])
-        print('in obtaining 3')
         user = User.objects.get(id=token.user_id)
-        print('in obtaining 4')
 
         return Response({
             'token': token.key,
@@ -49,6 +47,22 @@ class ObtainAuthTokenAndUserDetails(ObtainAuthToken):
                 'email': user.email
             }
         })
+
+
+class UserDetailsFromToken(RetrieveAPIView):
+    model = User
+    serializer_class = UserSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def retrieve(self, request, *args, **kwargs):
+        return Response(dict(
+            user={
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email
+            }
+        ))
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
