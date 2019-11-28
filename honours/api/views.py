@@ -89,6 +89,29 @@ class ProjectViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def list(self, request, *args, **kwargs):
+        projects = Project.objects.all()
+        serializer = ProjectSerializer(projects, many=True)
+        projects_and_users = []
+
+        for project in serializer.data:
+            user = User.objects.get(id=dict(project)['user'])
+            projects_and_users.append({
+                'id': dict(project)['id'],
+                'title': dict(project)['title'],
+                'landing_page_image': dict(project)['landing_page_image'],
+                'description': dict(project)['description'],
+                'link': dict(project)['link'],
+                'date_added': dict(project)['date_added'],
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                }
+            })
+
+        return Response(projects_and_users)
+
 
 class ProjectRatingViewSet(viewsets.ModelViewSet):
     queryset = ProjectRating.objects.all()
