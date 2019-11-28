@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from django.contrib.auth.models import User
 from rest_framework.authentication import TokenAuthentication
@@ -14,8 +15,6 @@ from rest_framework import status
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -90,7 +89,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request, *args, **kwargs):
-        projects = Project.objects.all()
+        projects = Project.objects.all().order_by('-date_added')
         serializer = ProjectSerializer(projects, many=True)
         projects_and_users = []
 
@@ -111,6 +110,26 @@ class ProjectViewSet(viewsets.ModelViewSet):
             })
 
         return Response(projects_and_users)
+
+    def retrieve(self, request, pk=None, **kwargs):
+        queryset = Project.objects.all()
+        project = get_object_or_404(queryset, pk=pk)
+        serializer = ProjectSerializer(project)
+        user = User.objects.get(id=serializer.data['user'])
+
+        return Response({
+            'id': serializer.data['id'],
+            'title': serializer.data['title'],
+            'landing_page_image': serializer.data['landing_page_image'],
+            'description': serializer.data['description'],
+            'link': serializer.data['link'],
+            'date_added': serializer.data['date_added'],
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+        })
 
 
 class ProjectRatingViewSet(viewsets.ModelViewSet):
